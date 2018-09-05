@@ -244,10 +244,15 @@ def _fold_constants(nn_layers):
           x = x + layer.add.alpha if layer_type == 'add' else x * layer.multiply.alpha
         else:
           for j, inp in enumerate(layer.input):
-            if j == 0: continue
-            shape = np.maximum(shape, load_constant_outputs[inp][1])
+            if j == 0:
+              x = np.reshape(x, shape)
+              continue
+            out_shape = np.maximum(shape, load_constant_outputs[inp][1])
             xj = load_constant_outputs[inp][0]
+            xj_shape = load_constant_outputs[inp][1]
+            xj = np.reshape(xj, xj_shape)
             x = x + xj if layer_type == 'add' else x * xj
+            assert np.array_equal(x.shape, out_shape)
         _replace_with_load_constant(nn_layers, i, x, shape,
             load_constant_outputs)
 
